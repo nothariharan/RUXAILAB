@@ -31,7 +31,9 @@ const canonical = (value) => {
   }
   if (isPlainObject(value)) {
     const entries = Object.keys(value)
-      .sort()
+      // A fixed locale keeps the order the same on every machine, so two
+      // studies with the same content always compare equal.
+      .sort((left, right) => left.localeCompare(right, 'en'))
       .map((key) => `${JSON.stringify(key)}:${canonical(value[key])}`)
     return `{${entries.join(',')}}`
   }
@@ -155,7 +157,7 @@ const mergeObject = ({ current, base, requested }) => {
   const merged = {}
 
   Object.keys(requested).forEach((key) => {
-    if (Object.prototype.hasOwnProperty.call(current, key)) {
+    if (Object.hasOwn(current, key)) {
       const value = mergeValue({
         current: current[key],
         base: base ? base[key] : undefined,
@@ -171,8 +173,8 @@ const mergeObject = ({ current, base, requested }) => {
   })
 
   Object.keys(current).forEach((key) => {
-    if (Object.prototype.hasOwnProperty.call(requested, key)) return
-    if (base && Object.prototype.hasOwnProperty.call(base, key)) {
+    if (Object.hasOwn(requested, key)) return
+    if (base && Object.hasOwn(base, key)) {
       // The editor removed this field.
       return
     }
